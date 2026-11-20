@@ -80,3 +80,16 @@ def test_leak_found(p):
     df = make()
     hold = df.drop(columns=["fare_rs", "wait_min"])
     assert dc.check_leaking_column(df, hold, p) == {"present": True, "column": "wait_min"}
+
+def test_detectors_do_not_modify_input(p):
+    df = make()
+    original = df.copy(deep=True)
+
+    dc.check_unit_mixup(df, p)
+    dc.check_sentinel_value(df, p)
+    dc.check_duplicate_rows(df)
+    dc.check_stuck_sensor(df, p)
+    dc.check_target_typos(df, p)
+    dc.check_spelling_variants(df, p)
+
+    pd.testing.assert_frame_equal(df, original)
