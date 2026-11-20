@@ -1,0 +1,81 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Lucknow Auto Fare Estimator</title>
+<style>
+  :root { --bg:#f6f7f9; --card:#fff; --ink:#1b1f24; --muted:#5b6672; --line:#d9dee4; --accent:#0b6b4f; --err:#b3261e; }
+  @media (prefers-color-scheme: dark) {
+    :root { --bg:#14171a; --card:#1d2227; --ink:#eceff2; --muted:#9aa5b1; --line:#323a42; --accent:#4cc79a; --err:#ff8a80; }
+  }
+  * { box-sizing: border-box; }
+  body { margin:0; background:var(--bg); color:var(--ink); font:16px/1.5 system-ui, sans-serif; }
+  main { max-width:520px; margin:0 auto; padding:24px 16px 48px; }
+  h1 { font-size:1.4rem; margin:0 0 4px; }
+  p.sub { margin:0 0 20px; color:var(--muted); }
+  form { background:var(--card); border:1px solid var(--line); border-radius:12px; padding:20px; display:grid; gap:14px; grid-template-columns:1fr 1fr; }
+  label { display:grid; gap:4px; font-size:.85rem; color:var(--muted); }
+  input, select { font:inherit; padding:9px 10px; border:1px solid var(--line); border-radius:8px; background:var(--bg); color:var(--ink); }
+  button { grid-column:1/-1; font:inherit; font-weight:600; padding:12px; border:0; border-radius:8px; background:var(--accent); color:#fff; cursor:pointer; }
+  @media (prefers-color-scheme: dark) { button { color:#0b1f17; } }
+  #result { margin-top:20px; background:var(--card); border:1px solid var(--line); border-radius:12px; padding:20px; text-align:center; }
+  #result .fare { font-size:2.4rem; font-weight:700; color:var(--accent); }
+  #result.error { text-align:left; color:var(--err); }
+  .hidden { display:none; }
+  @media (max-width:420px) { form { grid-template-columns:1fr; } }
+</style>
+</head>
+<body>
+<main>
+  <h1>Auto-rickshaw fare estimator</h1>
+  <p class="sub">Lucknow Auto Drivers' Cooperative. See the fare before you book.</p>
+
+  <form id="f">
+    <label>Distance (km)<input name="distance_km" type="number" step="0.1" min="0.1" max="40" value="12.5" required></label>
+    <label>Waiting time (min)<input name="wait_min" type="number" step="0.1" value="5" required></label>
+    <label>Passengers<input name="passengers" type="number" min="1" max="8" value="2" required></label>
+    <label>Hour of day (0-23)<input name="hour" type="number" min="0" max="23" value="14" required></label>
+    <label>Luggage bags<input name="luggage_bags" type="number" min="0" max="10" value="1" required></label>
+    <label>Fuel price (Rs/litre)<input name="fuel_price_rs" type="number" step="0.01" value="100" required></label>
+    <label>Booking
+      <select name="booking"><option>app</option><option>stand</option><option>street</option></select>
+    </label>
+    <label>Pick-up zone
+      <select name="zone"><option>Station Area</option><option>Market</option><option>Outskirts</option></select>
+    </label>
+    <button type="submit">Estimate fare</button>
+  </form>
+
+  <div id="result" class="hidden" role="status" aria-live="polite"></div>
+</main>
+
+<script>
+const form = document.getElementById("f");
+const box = document.getElementById("result");
+const ints = ["passengers", "hour", "luggage_bags"];
+
+form.addEventListener("submit", async (e) => {
+  e.preventDefault();
+  const body = {};
+  for (const [k, v] of new FormData(form)) {
+    body[k] = ["booking", "zone"].includes(k) ? v : (ints.includes(k) ? parseInt(v, 10) : parseFloat(v));
+  }
+  box.className = ""; box.textContent = "Estimating...";
+  try {
+    const r = await fetch("/predict", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) });
+    const data = await r.json();
+    if (r.ok) {
+      box.innerHTML = '<div>Estimated fare</div><div class="fare">Rs ' + Math.round(data.prediction) + "</div>";
+    } else {
+      const msgs = Array.isArray(data.detail)
+        ? data.detail.map(d => (d.loc || []).slice(1).join(".") + ": " + d.msg) : [data.detail];
+      box.className = "error"; box.textContent = "Request rejected: " + msgs.join("; ");
+    }
+  } catch (err) {
+    box.className = "error"; box.textContent = "Cannot reach the server. Is it running?";
+  }
+});
+</script>
+</body>
+</html>

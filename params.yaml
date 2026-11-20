@@ -1,0 +1,100 @@
+data:
+  raw_dir: data/raw
+  train: data/raw/train.csv
+  later: data/raw/later.csv
+  holdout: data/raw/holdout_features.csv
+  target: fare_rs
+  group_column: zone
+  text_columns:
+  - booking
+  - zone
+  numeric_columns:
+  - distance_km
+  - wait_min
+  - passengers
+  - hour
+  - luggage_bags
+  - fuel_price_rs
+  date_column: date
+  id_column: record_id
+checks:
+  leak_corr_threshold: 0.98
+  unit_ratio_threshold: 5.0
+  unit_known_factors:
+  - 10
+  - 12
+  - 60
+  - 100
+  - 1000
+  sentinel_candidates:
+  - -1
+  - -9
+  - -99
+  - -999
+  - -9999
+  - 9
+  - 99
+  - 999
+  - 9999
+  sentinel_min_count: 5
+  stuck_min_run_days: 7
+  typo_factor: 10
+  typo_min_gap_ratio: 0.3
+  typo_max_share: 0.1
+paths:
+  findings_template: reports/findings.yaml
+  findings_out: reports/findings.yaml
+  model_out: models/model.joblib
+  predictions_out: predictions/holdout_predictions.csv
+  monitoring_report: reports/monitoring.json
+cleaning:
+  sentinel_column: hour
+  sentinel_value: 999
+  unit_column: wait_min
+  unit_group_value: Outskirts
+  unit_factor: 60
+model:
+  feature_columns:
+  - distance_km
+  - wait_min
+  - passengers
+  - hour
+  - luggage_bags
+  - fuel_price_rs
+  - booking
+  - zone
+  categorical_columns:
+  - booking
+  - zone
+  validation_size: 0.2
+  random_state: 42
+  candidates:
+  - name: ridge
+    type: ridge
+    alpha: 1.0
+  - name: ridge_interactions
+    type: ridge_interact
+    alpha: 10.0
+  - name: ridge_interactions_light
+    type: ridge_interact
+    alpha: 100.0
+  - name: random_forest
+    type: random_forest
+    n_estimators: 300
+    max_depth: 12
+  - name: gradient_boosting
+    type: gradient_boosting
+    n_estimators: 300
+    learning_rate: 0.05
+    max_depth: 3
+mlflow:
+  tracking_uri: sqlite:///mlflow.db
+  experiment_name: mp010-auto-fare
+  registered_model_name: mp010-fare-model
+  champion_alias: champion
+monitoring:
+  psi_bins: 10
+  psi_eps: 0.0001
+  retrain_share: 0.7
+  promotion_min_improvement: 0.12
+  v2_selection_share: 0.2

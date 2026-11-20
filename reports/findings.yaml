@@ -1,0 +1,53 @@
+group_id: G001
+problem_id: MP010
+data_issues:
+  leaking_column:
+    present: false
+    column: null
+  unit_mixup:
+    present: true
+    column: wait_min
+    group_value: Outskirts
+    factor: 60
+  sentinel_value:
+    present: true
+    column: hour
+    value: 999
+    count: 49
+  duplicate_rows:
+    present: true
+    count: 55
+  stuck_sensor:
+    present: false
+    column: null
+    start_date: null
+    end_date: null
+  target_typos:
+    present: false
+    count: null
+  spelling_variants:
+    present: false
+    column: null
+    true_levels: null
+tracking:
+  experiment_name: mp010-auto-fare
+  best_run_id: c840527097114022b138eff06619a840
+  registered_model_name: mp010-fare-model
+  champion_version: 2
+monitoring:
+  psi:
+    distance_km: 3.4314888239887655
+    wait_min: 0.03135882025387472
+    passengers: 0.013950849332573923
+    hour: 0.02590692027632617
+    luggage_bags: 0.012381233755017564
+    fuel_price_rs: 0.03783959879273513
+  most_drifted_feature: distance_km
+  mae_by_group:
+    Market: 93.54623937812498
+    Outskirts: 21.44033010108526
+    Station Area: 25.932682234226842
+  worst_served_group: Market
+  mae_v1_on_check: 45.76888058016065
+  mae_v2_on_check: 21.948714371856205
+  decision: promote

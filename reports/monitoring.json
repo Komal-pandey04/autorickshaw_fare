@@ -1,0 +1,24 @@
+{
+  "psi": {
+    "distance_km": 3.4314888239887655,
+    "wait_min": 0.03135882025387472,
+    "passengers": 0.013950849332573923,
+    "hour": 0.02590692027632617,
+    "luggage_bags": 0.012381233755017564,
+    "fuel_price_rs": 0.03783959879273513
+  },
+  "most_drifted_feature": "distance_km",
+  "mae_by_group": {
+    "Market": 93.54623937812498,
+    "Outskirts": 21.44033010108526,
+    "Station Area": 25.932682234226842
+  },
+  "worst_served_group": "Market",
+  "mae_v1_on_check": 45.76888058016065,
+  "mae_v2_on_check": 21.948714371856205,
+  "improvement": 0.5204445882521699,
+  "decision": "promote",
+  "champion_version": 2,
+  "check_rows": 90,
+  "retrain_extra_rows": 210
+}
