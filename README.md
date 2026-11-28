@@ -46,3 +46,16 @@ kubectl apply -f k8s/deployment.yaml -f k8s/service.yaml
 - `k8s/` Kubernetes files
 - `reports/findings.yaml` data problems and monitoring results
 - `predictions/` holdout predictions
+
+## Extra features (added after the core pipeline)
+
+| Feature | Where | What it does |
+|---|---|---|
+| "Why this fare?" | `POST /predict/explain`, `src/fare_pipeline/explain.py`, web page | Swaps each input for a typical ride's value, one at a time, and reports the Rs each input adds or removes. Works with any model. The typical ride is `explain.baseline` in `params.yaml`. |
+| Batch prediction | `POST /predict/batch` | Up to 100 rides per call; every ride must pass the same client rules (distance <= 40, wait >= 0). Logs only the row count. |
+| Model info | `GET /model-info` | Final estimator type, expected input columns and the client's two rules. |
+| Service metrics | `GET /metrics` | Requests, errors, average latency and prediction count (in memory, per pod). |
+| Drift severity | `monitoring.psi_status`, `categorical_psi` | Labels each PSI as stable (< 0.1), moderate (< 0.25) or significant, and measures drift of text columns (`zone`, `booking`). |
+| Extended drift report | `python -m src.fare_pipeline.drift_report` | Writes `reports/drift_extended.json`: severity per column, columns needing attention, v1 error per booking type and zone. Needs the DVC data files; it does not touch `findings.yaml` or the registry. |
+
+Tests for all of these are in `tests/test_extras.py` (they use the small in-memory model, no CSVs needed).

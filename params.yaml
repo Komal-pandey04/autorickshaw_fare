@@ -98,3 +98,18 @@ monitoring:
   retrain_share: 0.7
   promotion_min_improvement: 0.12
   v2_selection_share: 0.2
+explain:
+  # "typical ride" used by /predict/explain: each input is swapped for these values, one at a time
+  baseline:
+    distance_km: 8.0
+    wait_min: 5.0
+    passengers: 2
+    hour: 12
+    luggage_bags: 0
+    fuel_price_rs: 100.0
+    booking: app
+    zone: Market
+  batch_max_rows: 100
+  psi_thresholds:
+    stable: 0.1
+    moderate: 0.25

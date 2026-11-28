@@ -19,3 +19,18 @@ def psi(expected: pd.Series, actual: pd.Series, bins: int = 10, eps: float = 1e-
 
 def psi_table(train: pd.DataFrame, later: pd.DataFrame, columns, bins=10, eps=1e-4) -> dict:
     return {c: psi(train[c], later[c], bins, eps) for c in columns}
+
+
+def psi_status(value: float, thresholds: dict) -> str:
+    """Industry rule of thumb: < 0.1 stable, 0.1-0.25 moderate shift, > 0.25 significant shift."""
+    if value < thresholds["stable"]:
+        return "stable"
+    return "moderate" if value < thresholds["moderate"] else "significant"
+
+
+def categorical_psi(expected: pd.Series, actual: pd.Series, eps: float = 1e-4) -> float:
+    """PSI for a text column: compares the share of each category (zone, booking)."""
+    levels = sorted(set(expected.dropna()) | set(actual.dropna()))
+    e = expected.value_counts(normalize=True).reindex(levels, fill_value=0).clip(lower=eps)
+    a = actual.value_counts(normalize=True).reindex(levels, fill_value=0).clip(lower=eps)
+    return float(((a - e) * np.log(a / e)).sum())
