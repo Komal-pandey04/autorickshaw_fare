@@ -19,3 +19,21 @@ class PredictRequest(BaseModel):
 
 class PredictResponse(BaseModel):
     prediction: float = Field(..., description="Predicted fare in rupees")
+
+
+class BatchRequest(BaseModel):
+    """Many rides at once (e.g. a day's bookings). Each ride follows the same two client rules."""
+    model_config = ConfigDict(extra="forbid")
+    rides: list[PredictRequest] = Field(..., min_length=1, max_length=100)
+
+
+class BatchResponse(BaseModel):
+    predictions: list[float]
+    count: int
+
+
+class ExplainResponse(BaseModel):
+    prediction: float
+    baseline_fare: float = Field(..., description="Fare of the typical ride in params.yaml")
+    effects_rs: dict[str, float] = Field(..., description="Rs each input adds (+) or removes (-) vs the typical ride")
+    other_effects_rs: float = Field(..., description="Interaction remainder so the numbers reconcile")

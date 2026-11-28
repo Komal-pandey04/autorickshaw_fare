@@ -22,6 +22,11 @@
   #result { margin-top:20px; background:var(--card); border:1px solid var(--line); border-radius:12px; padding:20px; text-align:center; }
   #result .fare { font-size:2.4rem; font-weight:700; color:var(--accent); }
   #result.error { text-align:left; color:var(--err); }
+  #why { margin-top:14px; text-align:left; font-size:.9rem; }
+  #why h2 { font-size:.95rem; margin:0 0 6px; }
+  #why .row { display:flex; justify-content:space-between; border-top:1px solid var(--line); padding:5px 0; }
+  #why .up { color:var(--err); } #why .down { color:var(--accent); }
+  #why small { color:var(--muted); display:block; margin-top:6px; }
   .hidden { display:none; }
   @media (max-width:420px) { form { grid-template-columns:1fr; } }
 </style>
@@ -66,7 +71,8 @@ form.addEventListener("submit", async (e) => {
     const r = await fetch("/predict", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) });
     const data = await r.json();
     if (r.ok) {
-      box.innerHTML = '<div>Estimated fare</div><div class="fare">Rs ' + Math.round(data.prediction) + "</div>";
+      box.innerHTML = '<div>Estimated fare</div><div class="fare">Rs ' + Math.round(data.prediction) + '</div><div id="why"></div>';
+      showWhy(body);
     } else {
       const msgs = Array.isArray(data.detail)
         ? data.detail.map(d => (d.loc || []).slice(1).join(".") + ": " + d.msg) : [data.detail];
@@ -76,6 +82,25 @@ form.addEventListener("submit", async (e) => {
     box.className = "error"; box.textContent = "Cannot reach the server. Is it running?";
   }
 });
+
+const nice = { distance_km: "Distance", wait_min: "Waiting time", passengers: "Passengers", hour: "Hour of day",
+  luggage_bags: "Luggage", fuel_price_rs: "Fuel price", booking: "Booking type", zone: "Pick-up zone" };
+
+async function showWhy(body) {
+  try {
+    const r = await fetch("/predict/explain", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) });
+    if (!r.ok) return;
+    const d = await r.json();
+    let html = "<h2>Why this fare?</h2>";
+    for (const [k, v] of Object.entries(d.effects_rs)) {
+      if (Math.abs(v) < 0.5) continue;
+      html += '<div class="row"><span>' + nice[k] + '</span><span class="' + (v > 0 ? "up" : "down") + '">' +
+              (v > 0 ? "+" : "-") + " Rs " + Math.abs(Math.round(v)) + "</span></div>";
+    }
+    html += "<small>Compared with a typical ride (about Rs " + Math.round(d.baseline_fare) + "). Red raises the fare, green lowers it.</small>";
+    document.getElementById("why").innerHTML = html;
+  } catch (e) { /* the main estimate is already shown; the breakdown is optional */ }
+}
 </script>
 </body>
 </html>
