@@ -19,3 +19,13 @@ dist/
 # Coverage reports
 htmlcov/
 .coverage
+
+# Python virtual environment
+.venv/
+
+# Python cache files
+__pycache__/
+*.py[cod]
+
+# Environment variables
+.env
